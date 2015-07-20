@@ -1,5 +1,7 @@
 package com.example.avikhasija.sounddroid;
 
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,6 +20,7 @@ import com.example.avikhasija.sounddroid.com.example.avikhasija.sounddroid.sound
 import com.example.avikhasija.sounddroid.com.example.avikhasija.sounddroid.soundcloud.Track;
 import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,16 +36,26 @@ public class MainActivity extends ActionBarActivity {
 
     private TracksAdapter mAdapter;
     private List<Track> mTracks;
-    private TextView mSelectedTtitle;
+    private TextView mSelectedTitle;
     private ImageView mSelectedThumbnail;
+    private MediaPlayer mMediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mMediaPlayer = new MediaPlayer();
+        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.start();
+            }
+        });
         
         Toolbar toolbar = (Toolbar)findViewById(R.id.player_toolbar);
-        mSelectedTtitle = (TextView)findViewById(R.id.selected_title);
+        mSelectedTitle = (TextView)findViewById(R.id.selected_title);
         mSelectedThumbnail = (ImageView)findViewById(R.id.selected_thumbnail);
 
         //List is an interface; arraylist is class that implements List
@@ -56,8 +69,16 @@ public class MainActivity extends ActionBarActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Track selectedTrack = mTracks.get(position);
 
-                mSelectedTtitle.setText(selectedTrack.getTitle());
+                mSelectedTitle.setText(selectedTrack.getTitle());
                 Picasso.with(MainActivity.this).load(selectedTrack.getAvatarURL()).into(mSelectedThumbnail);
+
+                try {
+                    mMediaPlayer.setDataSource(selectedTrack.getStreamURL()+"?client_id="+SoundCloudService.CLIENT_ID);
+                    //syncs in a background thread
+                    mMediaPlayer.prepareAsync();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
         recyclerView.setAdapter(mAdapter);
