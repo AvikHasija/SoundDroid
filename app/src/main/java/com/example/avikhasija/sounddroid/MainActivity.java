@@ -2,28 +2,59 @@ package com.example.avikhasija.sounddroid;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.example.avikhasija.sounddroid.com.example.avikhasija.sounddroid.soundcloud.SoundCloud;
+import com.example.avikhasija.sounddroid.com.example.avikhasija.sounddroid.soundcloud.SoundCloudService;
+import com.example.avikhasija.sounddroid.com.example.avikhasija.sounddroid.soundcloud.Track;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
+
+import retrofit.Callback;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 
 public class MainActivity extends ActionBarActivity {
 
     private static final String TAG = "MainActivity";
 
+    private TracksAdapter mAdapter;
+    private List<Track> mTracks;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //List is an interface; arraylist is class that implements List
+        mTracks = new ArrayList<Track>();
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.songs_list);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mAdapter = new TracksAdapter(this, mTracks);
+        recyclerView.setAdapter(mAdapter);
+
+        SoundCloudService service = SoundCloud.getService();
+        service.searchSongs("dark horse", new Callback<List<Track>>() {
+            @Override
+            public void success(List<Track> tracks, Response response) {
+                mTracks.clear();
+                mTracks.addAll(tracks);
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+
+            }
+        });
     }
 
     @Override

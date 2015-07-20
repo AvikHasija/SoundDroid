@@ -1,4 +1,4 @@
-package com.example.avikhasija.sounddroid;
+package com.example.avikhasija.sounddroid.com.example.avikhasija.sounddroid.soundcloud;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -18,28 +18,30 @@ public class Track {
     @SerializedName("id")
     private int mID;
 
-    public String getTitle() {
-        return mTitle;
+    @SerializedName("artwork_url")
+    private String artworkURL;
+
+    public String getArtworkURL() {
+        return artworkURL;
     }
 
-    public void setTitle(String title) {
-        mTitle = title;
+    public String getTitle() {
+        return mTitle;
     }
 
     public String getStreamURL() {
         return mStreamURL;
     }
 
-    public void setStreamURL(String streamURL) {
-        mStreamURL = streamURL;
-    }
-
     public int getID() {
         return mID;
     }
 
-    public void setID(int ID) {
-        mID = ID;
+    public String getAvatarURL(){
+        String avatarURL = artworkURL;
+        if(avatarURL != null){
+            avatarURL = avatarURL.replace("large", "tiny");
+        }
+        return avatarURL;
     }
-
 }
