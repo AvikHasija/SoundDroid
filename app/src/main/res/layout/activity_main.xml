@@ -18,12 +18,13 @@
         android:layout_height="@dimen/player_toolbar"
         android:layout_width="match_parent">
         <ImageView
+            android:id="@+id/selected_thumbnail"
             android:background="#FF0000"
             android:layout_width="@dimen/avatar_size"
             android:layout_height="@dimen/avatar_size"/>
         <TextView
+            android:id="@+id/selected_title"
             android:paddingLeft="8dp"
-            android:text="Hello world"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </android.support.v7.widget.Toolbar>
