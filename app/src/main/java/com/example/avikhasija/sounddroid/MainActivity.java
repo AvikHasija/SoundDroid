@@ -21,7 +21,9 @@ import com.example.avikhasija.sounddroid.com.example.avikhasija.sounddroid.sound
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import retrofit.Callback;
@@ -106,7 +108,7 @@ public class MainActivity extends ActionBarActivity {
         recyclerView.setAdapter(mAdapter);
 
         SoundCloudService service = SoundCloud.getService();
-        service.searchSongs("dark horse", new Callback<List<Track>>() {
+        service.getRecentSongs(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()), new Callback<List<Track>>() {
             @Override
             public void success(List<Track> tracks, Response response) {
                 mTracks.clear();
@@ -161,7 +163,7 @@ public class MainActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.search_view) {
             return true;
         }
 
