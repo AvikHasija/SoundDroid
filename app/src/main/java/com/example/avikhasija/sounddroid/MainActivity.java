@@ -39,6 +39,7 @@ public class MainActivity extends ActionBarActivity {
     private TextView mSelectedTitle;
     private ImageView mSelectedThumbnail;
     private MediaPlayer mMediaPlayer;
+    private ImageView mPlayerStateButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +51,15 @@ public class MainActivity extends ActionBarActivity {
         mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
-                mp.start();
+                toggleSongState();
+            }
+        });
+        //When song is finished
+        mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mPlayerStateButton.setImageResource(R.drawable.ic_play);
+                //will replay when play hit
             }
         });
         
@@ -58,9 +67,16 @@ public class MainActivity extends ActionBarActivity {
         mSelectedTitle = (TextView)findViewById(R.id.selected_title);
         mSelectedThumbnail = (ImageView)findViewById(R.id.selected_thumbnail);
 
+        mPlayerStateButton = (ImageView)findViewById(R.id.player_state);
+        mPlayerStateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleSongState();
+            }
+        });
+
         //List is an interface; arraylist is class that implements List
         mTracks = new ArrayList<Track>();
-
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.songs_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mAdapter = new TracksAdapter(this, mTracks);
@@ -71,6 +87,12 @@ public class MainActivity extends ActionBarActivity {
 
                 mSelectedTitle.setText(selectedTrack.getTitle());
                 Picasso.with(MainActivity.this).load(selectedTrack.getAvatarURL()).into(mSelectedThumbnail);
+
+                if (mMediaPlayer.isPlaying()){
+                    //selecting new song
+                    mMediaPlayer.stop();
+                    mMediaPlayer.reset();
+                }
 
                 try {
                     mMediaPlayer.setDataSource(selectedTrack.getStreamURL()+"?client_id="+SoundCloudService.CLIENT_ID);
@@ -97,6 +119,31 @@ public class MainActivity extends ActionBarActivity {
 
             }
         });
+    }
+
+    private void toggleSongState() {
+        if (mMediaPlayer.isPlaying()) {
+            mMediaPlayer.pause();
+            mPlayerStateButton.setImageResource(R.drawable.ic_play);
+        }
+        else {
+            mMediaPlayer.start();
+            mPlayerStateButton.setImageResource(R.drawable.ic_pause);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if(mMediaPlayer != null){
+            //release media player; free up resources
+            if (mMediaPlayer.isPlaying()){
+                mMediaPlayer.stop();
+            }
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
     }
 
     @Override
