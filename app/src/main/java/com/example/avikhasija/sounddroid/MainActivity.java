@@ -2,6 +2,7 @@ package com.example.avikhasija.sounddroid;
 
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.example.avikhasija.sounddroid.com.example.avikhasija.sounddroid.soundcloud.SoundCloud;
@@ -32,7 +34,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements SearchView.OnQueryTextListener{
 
     private static final String TAG = "MainActivity";
 
@@ -42,6 +44,8 @@ public class MainActivity extends ActionBarActivity {
     private ImageView mSelectedThumbnail;
     private MediaPlayer mMediaPlayer;
     private ImageView mPlayerStateButton;
+    private SearchView mSearchView;
+    private List<Track> mPreviousTracks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,9 +115,7 @@ public class MainActivity extends ActionBarActivity {
         service.getRecentSongs(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()), new Callback<List<Track>>() {
             @Override
             public void success(List<Track> tracks, Response response) {
-                mTracks.clear();
-                mTracks.addAll(tracks);
-                mAdapter.notifyDataSetChanged();
+                updateTracks(tracks);
             }
 
             @Override
@@ -121,6 +123,12 @@ public class MainActivity extends ActionBarActivity {
 
             }
         });
+    }
+
+    private void updateTracks(List<Track> tracks){
+        mTracks.clear();
+        mTracks.addAll(tracks);
+        mAdapter.notifyDataSetChanged();
     }
 
     private void toggleSongState() {
@@ -149,9 +157,51 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
+    public boolean onQueryTextSubmit(String query) {
+        mSearchView.clearFocus();
+        SoundCloud.getService().searchSongs(query, new Callback<List<Track>>() {
+            @Override
+            public void success(List<Track> tracks, Response response) {
+                updateTracks(tracks);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+
+            }
+        });
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        return false;
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        mSearchView = (SearchView) menu.findItem(R.id.search_view).getActionView();
+        mSearchView.setOnQueryTextListener(this);
+
+        //close searchview by seeing when menuitem collapses
+        MenuItemCompat.setOnActionExpandListener(menu.findItem(R.id.search_view), new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                //new list that copies old list
+                mPreviousTracks = new ArrayList<Track>(mTracks);
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                //pass old tracks (starting screen latest tracks) back in once user hits 'back' on searchview
+                updateTracks(mPreviousTracks);
+                return true;
+            }
+        });
+
         return true;
     }
 
